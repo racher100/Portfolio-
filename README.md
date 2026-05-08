@@ -1,3 +1,3 @@
-# Portfolio-
-Thiranex internship task - 1
+
+#Thiranex internship tasks
 
