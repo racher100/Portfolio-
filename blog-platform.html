@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BlogSpace | Share Your Story</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#f9fafb;--surface:#fff;--card:#f3f4f6;
+      --accent:#059669;--accent2:#0d9488;
+      --text:#111827;--muted:#6b7280;--border:#e5e7eb;
+      --shadow:0 4px 24px rgba(5,150,105,.09);
+    }
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    /* ── AUTH ── */
+    #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#059669,#0d9488);padding:1.5rem;}
+    .auth-box{background:#fff;border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:420px;
+      box-shadow:0 20px 60px rgba(0,0,0,.18);}
+    .auth-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;color:var(--accent);margin-bottom:.2rem;}
+    .auth-sub{color:var(--muted);font-size:.9rem;margin-bottom:1.8rem;}
+    .auth-tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:1.8rem;}
+    .auth-tab{flex:1;text-align:center;padding:.6rem;border-radius:8px;cursor:pointer;font-weight:600;
+      font-size:.9rem;color:var(--muted);transition:all .2s;}
+    .auth-tab.active{background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.1);}
+    .form-group{margin-bottom:1.1rem;}
+    .form-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.45rem;}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.75rem 1rem;
+      border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;
+      font-size:.95rem;color:var(--text);background:var(--card);transition:border-color .2s;outline:none;}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);background:#fff;}
+    .form-group textarea{resize:vertical;min-height:100px;}
+    .error-msg{background:#fef2f2;border:1px solid #fecaca;color:#ef4444;border-radius:8px;
+      padding:.7rem 1rem;font-size:.85rem;margin-bottom:1rem;display:none;}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+      padding:.65rem 1.3rem;border-radius:9px;font-family:'DM Sans',sans-serif;
+      font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;}
+    .btn-primary{background:var(--accent);color:#fff;width:100%;padding:.9rem;font-size:1rem;}
+    .btn-primary:hover{background:#047857;transform:translateY(-1px);}
+    .btn-accent{background:var(--accent);color:#fff;}
+    .btn-accent:hover{background:#047857;}
+    .btn-danger{background:#ef4444;color:#fff;}
+    .btn-danger:hover{background:#dc2626;}
+    .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+    .btn-warning{background:#f59e0b;color:#fff;}
+    .btn-sm{padding:.35rem .8rem;font-size:.8rem;border-radius:7px;}
+
+    /* ── APP ── */
+    #app-screen{display:none;min-height:100vh;}
+
+    /* ── NAVBAR ── */
+    .navbar{background:#fff;border-bottom:1px solid var(--border);padding:.9rem 1.5rem;
+      display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100;
+      box-shadow:0 2px 10px rgba(0,0,0,.05);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;color:var(--accent);margin-right:auto;}
+    .nav-search{flex:1;max-width:320px;position:relative;}
+    .nav-search input{width:100%;padding:.55rem 1rem .55rem 2.2rem;border:1.5px solid var(--border);
+      border-radius:9px;font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;
+      background:var(--bg);transition:border-color .2s;}
+    .nav-search input:focus{border-color:var(--accent);}
+    .nav-search::before{content:'🔍';position:absolute;left:.7rem;top:50%;transform:translateY(-50%);font-size:.78rem;}
+    .user-chip{display:flex;align-items:center;gap:.5rem;background:var(--bg);
+      border:1px solid var(--border);border-radius:100px;padding:.3rem .9rem .3rem .3rem;}
+    .avatar{width:28px;height:28px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.72rem;}
+    .uname{font-size:.82rem;font-weight:600;}
+    .logout-btn{background:none;border:1.5px solid var(--border);border-radius:8px;
+      padding:.38rem .8rem;font-size:.78rem;cursor:pointer;color:var(--muted);
+      font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
+    .logout-btn:hover{border-color:#ef4444;color:#ef4444;}
+
+    /* ── LAYOUT ── */
+    .app-layout{display:grid;grid-template-columns:1fr 300px;gap:2rem;
+      max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{}
+    .sidebar-card{background:#fff;border:1px solid var(--border);border-radius:16px;
+      padding:1.3rem;margin-bottom:1.2rem;}
+    .sidebar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:1rem;}
+    .category-list{display:flex;flex-direction:column;gap:.4rem;}
+    .cat-item{display:flex;align-items:center;justify-content:space-between;
+      padding:.5rem .8rem;border-radius:8px;cursor:pointer;font-size:.88rem;transition:all .2s;}
+    .cat-item:hover,.cat-item.active{background:rgba(5,150,105,.08);color:var(--accent);}
+    .cat-count{background:var(--card);border-radius:100px;padding:.1rem .5rem;font-size:.72rem;font-weight:700;}
+    .tag-cloud{display:flex;flex-wrap:wrap;gap:.5rem;}
+    .tag{background:var(--card);border:1px solid var(--border);border-radius:100px;
+      padding:.25rem .7rem;font-size:.78rem;cursor:pointer;transition:all .2s;}
+    .tag:hover{background:rgba(5,150,105,.08);border-color:var(--accent);color:var(--accent);}
+
+    /* ── MAIN FEED ── */
+    .feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem;}
+    .feed-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;}
+    .feed-filters{display:flex;gap:.5rem;}
+    .feed-filter{padding:.45rem .9rem;border-radius:8px;border:1.5px solid var(--border);
+      background:#fff;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--muted);transition:all .2s;}
+    .feed-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+    /* ── BLOG CARD ── */
+    .blog-card{background:#fff;border:1px solid var(--border);border-radius:18px;
+      padding:1.5rem;margin-bottom:1.2rem;transition:all .25s;cursor:pointer;}
+    .blog-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(5,150,105,.1);border-color:rgba(5,150,105,.25);}
+    .blog-meta{display:flex;align-items:center;gap:.7rem;margin-bottom:.9rem;flex-wrap:wrap;}
+    .blog-author-av{width:32px;height:32px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.75rem;flex-shrink:0;}
+    .blog-author{font-weight:600;font-size:.88rem;}
+    .blog-date{font-size:.78rem;color:var(--muted);}
+    .blog-category{font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:100px;
+      background:rgba(5,150,105,.1);color:var(--accent);text-transform:uppercase;letter-spacing:.5px;}
+    .blog-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;
+      margin-bottom:.5rem;line-height:1.3;}
+    .blog-excerpt{font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;
+      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+    .blog-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+    .blog-stats{display:flex;gap:1rem;}
+    .blog-stat{display:flex;align-items:center;gap:.3rem;font-size:.82rem;color:var(--muted);}
+    .blog-actions{display:flex;gap:.5rem;}
+    .like-btn{background:none;border:1.5px solid var(--border);border-radius:8px;
+      padding:.35rem .75rem;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s;
+      display:flex;align-items:center;gap:.3rem;}
+    .like-btn:hover,.like-btn.liked{background:#fef2f2;border-color:#fca5a5;color:#ef4444;}
+    .read-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;
+      padding:.35rem .9rem;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s;}
+    .read-btn:hover{background:#047857;}
+
+    /* ── SINGLE POST ── */
+    #post-view{display:none;max-width:800px;margin:0 auto;padding:2rem 1.5rem;}
+    .post-back{display:inline-flex;align-items:center;gap:.5rem;color:var(--accent);
+      font-weight:600;font-size:.88rem;cursor:pointer;margin-bottom:1.5rem;
+      background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);
+      padding:.5rem 1rem;border-radius:9px;transition:all .2s;}
+    .post-back:hover{background:rgba(5,150,105,.15);}
+    .post-header{margin-bottom:2rem;}
+    .post-category{font-size:.75rem;font-weight:700;padding:.25rem .7rem;border-radius:100px;
+      background:rgba(5,150,105,.1);color:var(--accent);text-transform:uppercase;
+      letter-spacing:.5px;display:inline-block;margin-bottom:.8rem;}
+    .post-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.5rem,4vw,2.2rem);
+      line-height:1.2;margin-bottom:1rem;}
+    .post-meta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+      padding:.9rem 1.2rem;background:var(--card);border-radius:12px;margin-bottom:1.5rem;}
+    .post-body{font-family:'Merriweather',serif;font-size:1rem;line-height:1.9;color:#374151;}
+    .post-body p{margin-bottom:1.2rem;}
+    .post-owner-actions{display:flex;gap:.7rem;margin:1.5rem 0;padding:1rem;
+      background:#fffbeb;border:1px solid #fde68a;border-radius:12px;}
+
+    /* ── COMMENTS ── */
+    .comments-section{margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--border);}
+    .comments-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:1.2rem;}
+    .comment-form{background:var(--card);border-radius:14px;padding:1.2rem;margin-bottom:1.5rem;}
+    .comment-form textarea{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);
+      border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;resize:none;
+      outline:none;height:80px;background:#fff;transition:border-color .2s;}
+    .comment-form textarea:focus{border-color:var(--accent);}
+    .comment-form-footer{display:flex;justify-content:flex-end;margin-top:.7rem;}
+    .comment-card{background:#fff;border:1px solid var(--border);border-radius:12px;
+      padding:1rem;margin-bottom:.8rem;}
+    .comment-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+    .comment-author{display:flex;align-items:center;gap:.5rem;}
+    .comment-av{width:26px;height:26px;border-radius:50%;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.65rem;}
+    .comment-name{font-weight:600;font-size:.85rem;}
+    .comment-date{font-size:.75rem;color:var(--muted);}
+    .comment-text{font-size:.88rem;line-height:1.6;color:#374151;}
+    .comment-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.8rem;transition:color .2s;}
+    .comment-del:hover{color:#ef4444;}
+    .no-comments{text-align:center;padding:2rem;color:var(--muted);font-size:.88rem;}
+
+    /* ── WRITE PAGE ── */
+    #write-view{display:none;max-width:800px;margin:0 auto;padding:2rem 1.5rem;}
+    .write-toolbar{display:flex;gap:.7rem;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap;}
+    .write-title-inp{width:100%;font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;
+      border:none;border-bottom:2px solid var(--border);padding:.5rem 0;outline:none;
+      background:transparent;margin-bottom:1rem;transition:border-color .2s;}
+    .write-title-inp:focus{border-color:var(--accent);}
+    .write-body-inp{width:100%;min-height:350px;padding:1rem;border:1.5px solid var(--border);
+      border-radius:14px;font-family:'Merriweather',serif;font-size:.95rem;line-height:1.8;
+      outline:none;resize:vertical;background:#fff;transition:border-color .2s;}
+    .write-body-inp:focus{border-color:var(--accent);}
+    .write-options{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+
+    /* ── MODAL ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+      z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;
+      opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:#fff;border-radius:20px;width:100%;max-width:440px;padding:2rem;
+      box-shadow:0 20px 60px rgba(0,0,0,.2);transform:scale(.95);transition:transform .2s;}
+    .modal-overlay.open .modal{transform:scale(1);}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+    .modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;}
+    .close-btn{background:var(--bg);border:none;width:30px;height:30px;border-radius:7px;
+      cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+    .close-btn:hover{background:var(--border);}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:2rem;right:1.5rem;background:var(--text);color:#fff;
+      border-radius:12px;padding:.85rem 1.3rem;font-size:.86rem;font-weight:500;z-index:999;
+      box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(20px);
+      transition:all .3s;pointer-events:none;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success{background:var(--accent);}
+    .toast.error{background:#ef4444;}
+
+    /* ── EMPTY / NO POSTS ── */
+    .empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+    .empty-icon{font-size:3rem;margin-bottom:1rem;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px){
+      .app-layout{grid-template-columns:1fr;}
+      .sidebar{display:none;}
+      .nav-search{display:none;}
+    }
+    @media(max-width:480px){
+      .uname{display:none;}
+      .navbar{padding:.8rem 1rem;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── AUTH ── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">✍️ BlogSpace</div>
+    <p class="auth-sub">Share your stories with the world.</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab" onclick="switchTab('register')">Register</div>
+    </div>
+    <div id="auth-error" class="error-msg"></div>
+    <div id="login-form">
+      <div class="form-group"><label>Email</label>
+        <input type="email" id="l-email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="l-pass" placeholder="Your password"/></div>
+      <button class="btn btn-primary" onclick="login()">Login →</button>
+      <p style="text-align:center;color:#9ca3af;font-size:.75rem;margin-top:1rem;">
+        Demo: demo@blog.com / demo123
+      </p>
+    </div>
+    <div id="register-form" style="display:none;">
+      <div class="form-group"><label>Full Name</label>
+        <input type="text" id="r-name" placeholder="Racher G"/></div>
+      <div class="form-group"><label>Email</label>
+        <input type="email" id="r-email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="r-pass" placeholder="Min 6 characters"/></div>
+      <button class="btn btn-primary" onclick="register()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app-screen">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo" onclick="showFeed()" style="cursor:pointer;">✍️ BlogSpace</div>
+    <div class="nav-search">
+      <input type="text" id="nav-search" placeholder="Search posts..." oninput="renderFeed()"/>
+    </div>
+    <button class="btn btn-accent btn-sm" onclick="showWrite()">+ Write Post</button>
+    <div class="user-chip">
+      <div class="avatar" id="nav-av">RG</div>
+      <span class="uname" id="nav-uname">User</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </nav>
+
+  <!-- FEED VIEW -->
+  <div id="feed-view">
+    <div class="app-layout">
+      <!-- MAIN -->
+      <div>
+        <div class="feed-header">
+          <div class="feed-title">📰 Latest Posts</div>
+          <div class="feed-filters">
+            <button class="feed-filter active" onclick="setFilter('all',this)">All</button>
+            <button class="feed-filter" onclick="setFilter('mine',this)">My Posts</button>
+          </div>
+        </div>
+        <div id="posts-container"></div>
+      </div>
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-title">📂 Categories</div>
+          <div class="category-list" id="cat-list"></div>
+        </div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">🔥 Trending Tags</div>
+          <div class="tag-cloud" id="tag-cloud"></div>
+        </div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">📊 Stats</div>
+          <div id="blog-stats" style="font-size:.88rem;color:var(--muted);display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SINGLE POST VIEW -->
+  <div id="post-view"></div>
+
+  <!-- WRITE / EDIT VIEW -->
+  <div id="write-view">
+    <div class="write-toolbar">
+      <button class="btn btn-ghost btn-sm" onclick="showFeed()">← Back</button>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;" id="write-mode-label">New Post</span>
+      <div style="margin-left:auto;display:flex;gap:.7rem;">
+        <button class="btn btn-ghost btn-sm" onclick="showFeed()">Cancel</button>
+        <button class="btn btn-accent btn-sm" onclick="publishPost()">Publish ✓</button>
+      </div>
+    </div>
+    <input type="text" class="write-title-inp" id="w-title" placeholder="Your post title here..."/>
+    <div class="write-options">
+      <div class="form-group" style="margin:0">
+        <label>Category</label>
+        <select id="w-cat">
+          <option>Technology</option><option>Science</option><option>Travel</option>
+          <option>Food</option><option>Lifestyle</option><option>Education</option>
+          <option>Career</option><option>Health</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Tags (comma separated)</label>
+        <input type="text" id="w-tags" placeholder="python, web, tips"/>
+      </div>
+    </div>
+    <textarea class="write-body-inp" id="w-body" placeholder="Write your story here...&#10;&#10;Share your thoughts, ideas, experiences or knowledge with the world!"></textarea>
+    <div style="margin-top:1rem;display:flex;justify-content:flex-end;gap:.7rem;">
+      <button class="btn btn-ghost" onclick="showFeed()">Cancel</button>
+      <button class="btn btn-accent" onclick="publishPost()">🚀 Publish Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Delete Post?</h3>
+      <button class="close-btn" onclick="closeModal('del-modal')">✕</button>
+    </div>
+    <p style="color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;">
+      This action cannot be undone. The post and all its comments will be permanently deleted.
+    </p>
+    <div style="display:flex;gap:.8rem;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('del-modal')">Cancel</button>
+      <button class="btn btn-danger" style="flex:1" onclick="confirmDelete()">Delete Post</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────
+let currentUser = null;
+let feedFilter = 'all';
+let editingPostId = null;
+let deletingPostId = null;
+let viewingPostId = null;
+
+const DEMO_POSTS = [
+  {id:'b1',title:'Getting Started with Web Development in 2026',
+   body:'Web development continues to evolve rapidly. In this post, I want to share some essential steps for beginners looking to break into this exciting field.\n\nFirst, master the fundamentals — HTML gives structure, CSS adds style, and JavaScript brings interactivity. These three form the backbone of everything you see on the web.\n\nNext, pick a modern framework. React.js remains the most in-demand frontend library in 2026. For backend, Node.js with Express or Python with Django are both excellent choices.\n\nDont forget version control! Git and GitHub are non-negotiable skills. Every developer uses them daily.\n\nFinally, build projects. Theory without practice means nothing. Start with a portfolio, a to-do app, then challenge yourself with something bigger. Happy coding!',
+   cat:'Technology',tags:['webdev','html','css','javascript'],
+   author:'admin@blog.com',authorName:'Demo Admin',
+   date:'May 5, 2026',likes:[],comments:['c1','c2']},
+  {id:'b2',title:'5 Habits That Transformed My Career as a Developer',
+   body:'After years in the industry, Ive noticed that the best developers share certain habits beyond technical skills.\n\n1. Read code daily — Study open-source projects on GitHub. Learning from others code accelerates growth enormously.\n\n2. Document everything — Write comments, maintain READMEs, keep notes. Your future self will thank you.\n\n3. Embrace failure — Every bug is a lesson. Dont fear breaking things in development; its how you learn the most.\n\n4. Stay curious — The tech world moves fast. Spend 30 minutes daily reading tech news, documentation, or tutorials.\n\n5. Build in public — Share your projects, write blog posts, contribute to communities. Visibility opens doors you didnt know existed.',
+   cat:'Career',tags:['career','productivity','developer'],
+   author:'admin@blog.com',authorName:'Demo Admin',
+   date:'May 3, 2026',likes:[],comments:[]},
+  {id:'b3',title:'Understanding Python for Data Analysis',
+   body:'Python has become the language of choice for data science and analysis. Here is why and how you can get started.\n\nThe key libraries you need to know are: NumPy for numerical computing, Pandas for data manipulation, Matplotlib and Seaborn for visualization, and Scikit-learn for basic machine learning.\n\nA typical data analysis workflow looks like this: First, load and explore your data with Pandas. Second, clean missing values and fix inconsistencies. Third, visualize patterns with Matplotlib. Finally, draw conclusions and present findings clearly.\n\nThe best part? Python syntax is clean and beginner-friendly. You can be productive within weeks of starting.',
+   cat:'Education',tags:['python','data','analysis'],
+   author:'admin@blog.com',authorName:'Demo Admin',
+   date:'Apr 28, 2026',likes:[],comments:['c3']},
+];
+
+const DEMO_COMMENTS = [
+  {id:'c1',postId:'b1',author:'racher@email.com',authorName:'Racher G',text:'This is exactly what I needed! Starting my web dev journey this week.',date:'May 6, 2026'},
+  {id:'c2',postId:'b1',author:'demo@blog.com',authorName:'Demo Admin',text:'Great to hear! Feel free to ask any questions as you progress.',date:'May 6, 2026'},
+  {id:'c3',postId:'b3',author:'racher@email.com',authorName:'Racher G',text:'Python pandas took me a while to grasp but now I love it!',date:'Apr 29, 2026'},
+];
+
+const DEMO_USERS = [
+  {name:'Demo Admin',email:'admin@blog.com',pass:'admin123'},
+  {name:'Racher G',email:'racher@email.com',pass:'racher123'},
+  {name:'Demo User',email:'demo@blog.com',pass:'demo123'},
+];
+
+function initData(){
+  if(!localStorage.getItem('bs_posts')) localStorage.setItem('bs_posts',JSON.stringify(DEMO_POSTS));
+  if(!localStorage.getItem('bs_comments')) localStorage.setItem('bs_comments',JSON.stringify(DEMO_COMMENTS));
+  if(!localStorage.getItem('bs_users')) localStorage.setItem('bs_users',JSON.stringify(DEMO_USERS));
+}
+function getPosts(){return JSON.parse(localStorage.getItem('bs_posts')||'[]');}
+function setPosts(p){localStorage.setItem('bs_posts',JSON.stringify(p));}
+function getComments(){return JSON.parse(localStorage.getItem('bs_comments')||'[]');}
+function setComments(c){localStorage.setItem('bs_comments',JSON.stringify(c));}
+function getUsers(){return JSON.parse(localStorage.getItem('bs_users')||'[]');}
+function setUsers(u){localStorage.setItem('bs_users',JSON.stringify(u));}
+
+// ─── AUTH ─────────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>
+    el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('login-form').style.display=t==='login'?'':'none';
+  document.getElementById('register-form').style.display=t==='register'?'':'none';
+  document.getElementById('auth-error').style.display='none';
+}
+function showAuthErr(m){const e=document.getElementById('auth-error');e.textContent=m;e.style.display='block';}
+
+function register(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  if(!name) return showAuthErr('Enter your name.');
+  if(!email||!email.includes('@')) return showAuthErr('Enter a valid email.');
+  if(pass.length<6) return showAuthErr('Password must be 6+ characters.');
+  const users=getUsers();
+  if(users.find(u=>u.email===email)) return showAuthErr('Email already exists.');
+  users.push({name,email,pass});
+  setUsers(users);
+  showToast('Account created! Login now.','success');
+  switchTab('login');
+  document.getElementById('l-email').value=email;
+}
+
+function login(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  if(!email) return showAuthErr('Enter your email.');
+  if(!pass) return showAuthErr('Enter your password.');
+  const user=getUsers().find(u=>u.email===email&&u.pass===pass);
+  if(!user) return showAuthErr('Invalid credentials. Try: demo@blog.com / demo123');
+  currentUser=user;
+  localStorage.setItem('bs_session',JSON.stringify(user));
+  showApp();
+}
+
+function logout(){
+  localStorage.removeItem('bs_session');
+  currentUser=null;
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  showToast('Logged out.','success');
+}
+
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  const init=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('nav-av').textContent=init;
+  document.getElementById('nav-uname').textContent=currentUser.name;
+  showFeed();
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────
+function showFeed(){
+  document.getElementById('feed-view').style.display='';
+  document.getElementById('post-view').style.display='none';
+  document.getElementById('write-view').style.display='none';
+  renderFeed();
+  renderSidebar();
+}
+
+function showWrite(postId=null){
+  editingPostId=postId;
+  document.getElementById('feed-view').style.display='none';
+  document.getElementById('post-view').style.display='none';
+  document.getElementById('write-view').style.display='block';
+  document.getElementById('write-mode-label').textContent=postId?'Edit Post':'New Post';
+  if(postId){
+    const p=getPosts().find(x=>x.id===postId);
+    if(p){
+      document.getElementById('w-title').value=p.title;
+      document.getElementById('w-body').value=p.body;
+      document.getElementById('w-cat').value=p.cat;
+      document.getElementById('w-tags').value=p.tags.join(', ');
+    }
+  } else {
+    document.getElementById('w-title').value='';
+    document.getElementById('w-body').value='';
+    document.getElementById('w-cat').value='Technology';
+    document.getElementById('w-tags').value='';
+  }
+  window.scrollTo(0,0);
+}
+
+function showPost(pid){
+  viewingPostId=pid;
+  document.getElementById('feed-view').style.display='none';
+  document.getElementById('write-view').style.display='none';
+  const pv=document.getElementById('post-view');
+  pv.style.display='block';
+  renderPost(pid);
+  window.scrollTo(0,0);
+}
+
+// ─── FEED ─────────────────────────────────────────────────────
+function setFilter(f,el){
+  feedFilter=f;
+  document.querySelectorAll('.feed-filter').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
+
+function renderFeed(){
+  const search=(document.getElementById('nav-search').value||'').toLowerCase();
+  let posts=getPosts();
+  if(feedFilter==='mine') posts=posts.filter(p=>p.author===currentUser.email);
+  if(search) posts=posts.filter(p=>
+    p.title.toLowerCase().includes(search)||p.body.toLowerCase().includes(search)||
+    p.tags.some(t=>t.includes(search)));
+  posts=[...posts].reverse();
+  const el=document.getElementById('posts-container');
+  if(!posts.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">${feedFilter==='mine'?'✍️':'📭'}</div>
+      <p style="font-weight:600;margin-bottom:.5rem;">${feedFilter==='mine'?'No posts yet!':'No posts found'}</p>
+      <p style="font-size:.85rem;margin-bottom:1.5rem;">${feedFilter==='mine'?'Share your first story with the world!':'Try a different search term.'}</p>
+      ${feedFilter==='mine'?'<button class="btn btn-accent" onclick="showWrite()">Write Your First Post</button>':''}</div>`;
+    return;
+  }
+  el.innerHTML=posts.map(p=>{
+    const comments=getComments().filter(c=>c.postId===p.id);
+    const liked=p.likes&&p.likes.includes(currentUser.email);
+    const isOwner=p.author===currentUser.email;
+    return `<div class="blog-card" onclick="showPost('${p.id}')">
+      <div class="blog-meta">
+        <div class="blog-author-av">${p.authorName.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+        <span class="blog-author">${escH(p.authorName)}</span>
+        <span class="blog-date">${p.date}</span>
+        <span class="blog-category">${p.cat}</span>
+        ${isOwner?'<span style="background:#ede9fe;color:#7c3aed;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;">Yours</span>':''}
+      </div>
+      <div class="blog-title">${escH(p.title)}</div>
+      <div class="blog-excerpt">${escH(p.body)}</div>
+      <div class="blog-footer">
+        <div class="blog-stats">
+          <span class="blog-stat">❤️ ${p.likes?p.likes.length:0}</span>
+          <span class="blog-stat">💬 ${comments.length}</span>
+          <span class="blog-stat">📖 ${Math.ceil(p.body.split(' ').length/200)} min read</span>
+        </div>
+        <div class="blog-actions" onclick="event.stopPropagation()">
+          <button class="like-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}')">
+            ${liked?'❤️':'🤍'} ${p.likes?p.likes.length:0}
+          </button>
+          <button class="read-btn" onclick="showPost('${p.id}')">Read →</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSidebar(){
+  const posts=getPosts();
+  const cats={};
+  const tags={};
+  posts.forEach(p=>{
+    cats[p.cat]=(cats[p.cat]||0)+1;
+    (p.tags||[]).forEach(t=>{tags[t]=(tags[t]||0)+1;});
+  });
+  document.getElementById('cat-list').innerHTML=
+    Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,n])=>
+      `<div class="cat-item" onclick="filterCat('${c}')">${c}<span class="cat-count">${n}</span></div>`
+    ).join('')||'<p style="color:var(--muted);font-size:.82rem;">No categories yet.</p>';
+  document.getElementById('tag-cloud').innerHTML=
+    Object.entries(tags).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t])=>
+      `<span class="tag">#${t}</span>`).join('');
+  const myPosts=posts.filter(p=>p.author===currentUser.email);
+  const comments=getComments().filter(c=>c.author===currentUser.email);
+  document.getElementById('blog-stats').innerHTML=
+    `<span>📝 ${posts.length} total posts</span>
+     <span>✍️ ${myPosts.length} your posts</span>
+     <span>💬 ${comments.length} your comments</span>`;
+}
+
+function filterCat(cat){
+  document.getElementById('nav-search').value=cat;
+  renderFeed();
+}
+
+// ─── SINGLE POST ──────────────────────────────────────────────
+function renderPost(pid){
+  const p=getPosts().find(x=>x.id===pid);
+  if(!p){showFeed();return;}
+  const comments=getComments().filter(c=>c.postId===pid);
+  const isOwner=p.author===currentUser.email;
+  const liked=p.likes&&p.likes.includes(currentUser.email);
+  const pv=document.getElementById('post-view');
+  pv.innerHTML=`
+    <div onclick="showFeed()" class="post-back">← Back to Feed</div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:1.5rem;">
+      <div class="post-header">
+        <span class="post-category">${p.cat}</span>
+        <h1 class="post-title">${escH(p.title)}</h1>
+        <div class="post-meta-row">
+          <div class="blog-author-av">${p.authorName.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+          <div>
+            <div style="font-weight:600;font-size:.9rem;">${escH(p.authorName)}</div>
+            <div style="font-size:.78rem;color:var(--muted);">${p.date}</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:.5rem;align-items:center;">
+            <span style="font-size:.82rem;color:var(--muted);">📖 ${Math.ceil(p.body.split(' ').length/200)} min read</span>
+            <button class="like-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}')">
+              ${liked?'❤️':'🤍'} ${p.likes?p.likes.length:0}
+            </button>
+          </div>
+        </div>
+        ${p.tags&&p.tags.length?`<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+          ${p.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}
+        </div>`:''}
+      </div>
+      ${isOwner?`<div class="post-owner-actions">
+        <span style="font-size:.85rem;font-weight:600;color:#92400e;margin-right:auto;">✏️ You authored this post</span>
+        <button class="btn btn-sm btn-warning" onclick="showWrite('${p.id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="askDelete('${p.id}')">Delete</button>
+      </div>`:''}
+      <div class="post-body">${escH(p.body).split('\n\n').map(para=>`<p>${para}</p>`).join('')}</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:1.5rem;">
+      <div class="comments-title">💬 Comments (${comments.length})</div>
+      <div class="comment-form">
+        <textarea id="new-comment" placeholder="Share your thoughts..."></textarea>
+        <div class="comment-form-footer">
+          <button class="btn btn-accent btn-sm" onclick="addComment('${pid}')">Post Comment</button>
+        </div>
+      </div>
+      <div id="comments-list">
+        ${comments.length?comments.map(c=>{
+          const canDel=c.author===currentUser.email||p.author===currentUser.email;
+          return `<div class="comment-card">
+            <div class="comment-header">
+              <div class="comment-author">
+                <div class="comment-av">${c.authorName.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+                <div>
+                  <div class="comment-name">${escH(c.authorName)}</div>
+                  <div class="comment-date">${c.date}</div>
+                </div>
+              </div>
+              ${canDel?`<button class="comment-del" onclick="deleteComment('${c.id}','${pid}')">✕ Delete</button>`:''}
+            </div>
+            <div class="comment-text">${escH(c.text)}</div>
+          </div>`;
+        }).join(''):`<div class="no-comments">💬 No comments yet. Be the first to share your thoughts!</div>`}
+      </div>
+    </div>`;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────
+function toggleLike(pid){
+  const posts=getPosts();
+  const p=posts.find(x=>x.id===pid);
+  if(!p) return;
+  if(!p.likes) p.likes=[];
+  const i=p.likes.indexOf(currentUser.email);
+  if(i>=0) p.likes.splice(i,1);
+  else p.likes.push(currentUser.email);
+  setPosts(posts);
+  if(viewingPostId===pid) renderPost(pid);
+  else renderFeed();
+}
+
+function addComment(pid){
+  const text=document.getElementById('new-comment').value.trim();
+  if(!text) return showToast('Write something first!','error');
+  const comments=getComments();
+  const c={
+    id:'c'+Date.now(),postId:pid,
+    author:currentUser.email,authorName:currentUser.name,
+    text,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+  };
+  comments.push(c);
+  setComments(comments);
+  showToast('Comment posted!','success');
+  renderPost(pid);
+}
+
+function deleteComment(cid,pid){
+  setComments(getComments().filter(c=>c.id!==cid));
+  showToast('Comment deleted.','error');
+  renderPost(pid);
+}
+
+function publishPost(){
+  const title=document.getElementById('w-title').value.trim();
+  const body=document.getElementById('w-body').value.trim();
+  if(!title) return showToast('Add a title!','error');
+  if(body.length<20) return showToast('Write at least 20 characters!','error');
+  const tags=document.getElementById('w-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const data={
+    title,body,cat:document.getElementById('w-cat').value,tags,
+    author:currentUser.email,authorName:currentUser.name,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    likes:[],comments:[],
+  };
+  let posts=getPosts();
+  if(editingPostId){
+    posts=posts.map(p=>p.id===editingPostId?{...p,...data}:p);
+    showToast('Post updated!','success');
+  } else {
+    posts.push({id:'b'+Date.now(),...data});
+    showToast('Post published! 🎉','success');
+  }
+  setPosts(posts);
+  editingPostId=null;
+  showFeed();
+}
+
+function askDelete(pid){
+  deletingPostId=pid;
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function confirmDelete(){
+  if(!deletingPostId) return;
+  setPosts(getPosts().filter(p=>p.id!==deletingPostId));
+  setComments(getComments().filter(c=>c.postId!==deletingPostId));
+  closeModal('del-modal');
+  showToast('Post deleted.','error');
+  deletingPostId=null;
+  showFeed();
+}
+
+// ─── UTILS ────────────────────────────────────────────────────
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){if(e.target===this) this.classList.remove('open');});
+});
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let toastTimer;
+function showToast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.className='toast';},3000);
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────
+initData();
+const sess=localStorage.getItem('bs_session');
+if(sess){
+  try{
+    const u=JSON.parse(sess);
+    const fresh=getUsers().find(x=>x.email===u.email&&x.pass===u.pass);
+    if(fresh){currentUser=fresh;showApp();}
+    else localStorage.removeItem('bs_session');
+  }catch(e){localStorage.removeItem('bs_session');}
+}
+</script>
+</body>
+</html>
